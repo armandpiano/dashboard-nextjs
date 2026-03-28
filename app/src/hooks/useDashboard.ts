@@ -1,5 +1,5 @@
 import useCryptoPrices from "./useCrypto";
-import useFetchPro from "./useFetchPro";
+import {useFetchPro} from "./useFetchPro";
 
 const useDashboard=()=>{
     const crypto= useCryptoPrices();

@@ -1,61 +1,49 @@
 import { useState, useEffect, useRef } from "react";
 
-type Options = {  
-    retries?: number;
+type Options ={
+    retries?: number
 }
 
-const useFetchPro = (url: string, options?: Options) => {
-    const [data, setData] = useState<any>([]);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState("");
+export const useFetchPro = (url: string, options?:Options)=>{
+    const [data, setData] = useState([])
+    const [loading, setLoading] = useState(true)
+    const [error, setError] = useState(null)
 
-    const abortRef = useRef<AbortController | null>(null);
+    const abortRef = useRef<AbortController | null>(null)
 
-    useEffect(() => {
-        // Cancelar petición previa si existe
-        abortRef.current?.abort();
-        const controller = new AbortController();
-        abortRef.current = controller;
+     useEffect(()=>{
+        abortRef.current?.abort()
+        const controller = new AbortController()
+        abortRef.current = controller
 
-        let attempts = 0;
+        let attemps = 0
 
-        const fetchData = async () => {
+        const fetchData = async ()=>{
             try {
-                setLoading(true); // 1. Empezamos a cargar
-                setError(""); // Limpiamos errores previos
-
+                setLoading(false)
                 const res = await fetch(url, {
                     signal: controller.signal
-                });
+                })
+                if (!res.ok) throw new Error("error")
 
-                if (!res.ok) throw new Error("Error en la petición");
-
-                const json = await res.json();
-                setData(json);
-                setLoading(false); // 2. Ya tenemos los datos
-
-            } catch (err: any) {
-                // Si el error fue porque nosotros cancelamos la petición, no hacemos nada
-                if (err.name === 'AbortError') return;
-
-                if (attempts < (options?.retries || 0)) {
-                    attempts++;
-                    fetchData(); // Reintento
-                } else {
-                    setError("Failed Request");
-                    setLoading(false);
+                const json = await res.json()
+                setData(json)
+            } catch (error) {
+                if(attemps < (options?.retries || 0)){
+                    attemps++
+                    fetchData()
+                }else{
+                    setError("Failed request")
                 }
+
+            } finally{
+                setLoading(true)
             }
-        };
+            fetchData()
+        }
+        return () => controller.abort()
 
-        fetchData(); // 3. Llamamos a la función UNA SOLA VEZ aquí
+    },[null])
 
-        // Limpieza al desmontar el componente
-        return () => controller.abort();
-
-    }, [url]); // 4. Se ejecuta cada que la URL cambie
-
-    return { data, loading, error };
+    return { data, loading, error}
 }
-
-export default useFetchPro;

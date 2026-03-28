@@ -1,4 +1,4 @@
-import useFetchPro from "./useFetchPro"
+import {useFetchPro} from "./useFetchPro"
 
 //useFetch (extraer recursos de una API)
 const useCryptoPrices = () => {
